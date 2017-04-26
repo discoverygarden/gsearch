@@ -35,11 +35,11 @@ import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.Version;
 
 import dk.defxws.fedoragsearch.server.GTransformer;
 import dk.defxws.fedoragsearch.server.GenericOperationsImpl;
@@ -180,7 +180,7 @@ public class OperationsImpl extends GenericOperationsImpl {
 				}
         	    TermsEnum termsEnum;
 				try {
-					termsEnum = terms.iterator(null);
+					termsEnum = terms.iterator();
 				} catch (Exception e) {
 		              throw new GenericSearchException("terms.iterator error:\n" + e.toString());
 				}
@@ -522,7 +522,7 @@ public class OperationsImpl extends GenericOperationsImpl {
 			StringBuffer untokenizedFields = new StringBuffer(config.getUntokenizedFields(indexName));
 			while (li.hasNext()) {
 				Field f = (Field)li.next();
-				if (!f.fieldType().tokenized() && f.fieldType().indexed() && untokenizedFields.indexOf(f.name())<0) {
+				if (!f.fieldType().tokenized() && f.fieldType().indexOptions() != IndexOptions.NONE && untokenizedFields.indexOf(f.name())<0) {
 					untokenizedFields.append(" "+f.name());
 					config.setUntokenizedFields(indexName, untokenizedFields.toString());
 				}
@@ -555,16 +555,15 @@ public class OperationsImpl extends GenericOperationsImpl {
         	analyzer = new KeywordAnalyzer();
         } else {
     		try {
-    			Version version = Version.LUCENE_42;
     			Class analyzerClass = Class.forName(analyzerClassName);
                 if (logger.isDebugEnabled())
                     logger.debug("getAnalyzer analyzerClass=" + analyzerClass.toString());
     			if (stopwordsLocation == null || stopwordsLocation.equals("")) {
-    				analyzer = (Analyzer) analyzerClass.getConstructor(new Class[] { Version.class})
-    				.newInstance(new Object[] { version });
+    				analyzer = (Analyzer) analyzerClass.getConstructor(new Class[] { })
+    				.newInstance(new Object[] { });
     			} else {
-    				analyzer = (Analyzer) analyzerClass.getConstructor(new Class[] { Version.class, File.class})
-    				.newInstance(new Object[] { version, new File(stopwordsLocation) });
+    				analyzer = (Analyzer) analyzerClass.getConstructor(new Class[] { File.class})
+    				.newInstance(new Object[] { new File(stopwordsLocation) });
     			}
             } catch (Exception e) {
                 throw new GenericSearchException(analyzerClassName
@@ -649,7 +648,7 @@ public class OperationsImpl extends GenericOperationsImpl {
 		} else {
 	        try {
 	        	closeIndexReaderAndSearcher(indexName);
-				Directory dir = new SimpleFSDirectory(new File(config.getIndexDir(indexName)));
+				Directory dir = new SimpleFSDirectory(new File(config.getIndexDir(indexName)).toPath());
 				ir = DirectoryReader.open(dir);
 			} catch (Exception e) {
 				throw new GenericSearchException("IndexReader open error indexName=" + indexName+ " :\n", e);
@@ -683,11 +682,11 @@ public class OperationsImpl extends GenericOperationsImpl {
     	if (iw == null) {
     		Directory dir;
     		try {
-    			dir = new SimpleFSDirectory(new File(config.getIndexDir(indexName)));
+    			dir = new SimpleFSDirectory(new File(config.getIndexDir(indexName)).toPath());
     		} catch (Exception e) {
                 throw new GenericSearchException("IndexWriter new error indexName=" + indexName+ " :\n", e);
     		}
-    		IndexWriterConfig iwconfig = new IndexWriterConfig(Version.LUCENE_42, getQueryAnalyzer(indexName));
+    		IndexWriterConfig iwconfig = new IndexWriterConfig(getQueryAnalyzer(indexName));
     		int maxBufferedDocs = config.getMaxBufferedDocs(indexName);
     		if (maxBufferedDocs > 0) {
     			iwconfig.setMaxBufferedDocs(maxBufferedDocs);
@@ -697,10 +696,6 @@ public class OperationsImpl extends GenericOperationsImpl {
     			LogDocMergePolicy ldmp = new LogDocMergePolicy();
     			ldmp.setMergeFactor(mergeFactor);
     			iwconfig.setMergePolicy(ldmp);
-    		}
-    		long defaultWriteLockTimeout = config.getDefaultWriteLockTimeout(indexName);
-    		if (defaultWriteLockTimeout > 0) {
-    			IndexWriterConfig.setDefaultWriteLockTimeout(defaultWriteLockTimeout);
     		}
     	    try {
                 iw = new IndexWriter(dir, iwconfig);

@@ -42,7 +42,6 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.Version;
 
 import dk.defxws.fedoragsearch.server.GTransformer;
 import dk.defxws.fedoragsearch.server.GenericOperationsImpl;
@@ -176,7 +175,7 @@ public class OperationsImpl extends GenericOperationsImpl {
 				}
         	    TermsEnum termsEnum;
 				try {
-					termsEnum = terms.iterator(null);
+					termsEnum = terms.iterator();
 				} catch (Exception e) {
 		              throw new GenericSearchException("terms.iterator error:\n" + e.toString());
 				}
@@ -517,16 +516,15 @@ public class OperationsImpl extends GenericOperationsImpl {
         	analyzer = new KeywordAnalyzer();
         } else {
     		try {
-    			Version version = Version.LUCENE_42;
     			Class analyzerClass = Class.forName(analyzerClassName);
                 if (logger.isDebugEnabled())
                     logger.debug("getAnalyzer analyzerClass=" + analyzerClass.toString());
     			if (stopwordsLocation == null || stopwordsLocation.equals("")) {
-    				analyzer = (Analyzer) analyzerClass.getConstructor(new Class[] { Version.class})
-    				.newInstance(new Object[] { version });
+    				analyzer = (Analyzer) analyzerClass.getConstructor(new Class[] { })
+    				.newInstance(new Object[] { });
     			} else {
-    				analyzer = (Analyzer) analyzerClass.getConstructor(new Class[] { Version.class, File.class})
-    				.newInstance(new Object[] { version, new File(stopwordsLocation) });
+    				analyzer = (Analyzer) analyzerClass.getConstructor(new Class[] { File.class})
+    				.newInstance(new Object[] { new File(stopwordsLocation) });
     			}
             } catch (Exception e) {
                 throw new GenericSearchException(analyzerClassName
@@ -716,7 +714,7 @@ public class OperationsImpl extends GenericOperationsImpl {
 		} else {
 	        try {
 	        	closeIndexReaderAndSearcher(indexName);
-				Directory dir = new SimpleFSDirectory(new File(config.getIndexDir(indexName)));
+				Directory dir = new SimpleFSDirectory(new File(config.getIndexDir(indexName)).toPath());
 				ir = DirectoryReader.open(dir);
 			} catch (Exception e) {
 				throw new GenericSearchException("IndexReader open error indexName=" + indexName+ " :\n", e);
