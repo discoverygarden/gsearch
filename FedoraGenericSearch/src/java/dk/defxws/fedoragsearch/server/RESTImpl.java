@@ -201,16 +201,6 @@ public class RESTImpl extends HttpServlet {
 		}
         if (logger.isInfoEnabled())
             logger.info("request="+request.getQueryString()+" timeusedms="+timeusedms);
-      } catch (ConfigException config_ex) {
-          resultXml = new StringBuffer("<resultPage>");
-          resultXml.append("<error><message><![CDATA["+config_ex.getMessage()+"]]></message></error>");
-          resultXml.append("</resultPage>");
-          logger.error(config_ex);
-          config_ex.printStackTrace();
-      }
-//        if (logger.isDebugEnabled())
-//            logger.debug("after "+restXslt+" result=\n"+resultXml);
-        
         if (restXslt.indexOf(CONTENTTYPEHTML)>=0)
             response.setContentType("text/html; charset=UTF-8");
         else
@@ -220,7 +210,9 @@ public class RESTImpl extends HttpServlet {
                         response.getOutputStream(), "UTF-8"));
         out.print(resultXml);
         out.close();
-
+      } catch (ConfigException config_ex) {
+          response.sendError(500, config_ex.getMessage());
+      }
     }
     
     private String gfindObjects(HttpServletRequest request, HttpServletResponse response)
