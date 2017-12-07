@@ -55,19 +55,6 @@ public class GTransformer {
     private static final Logger logger =
         Logger.getLogger(GTransformer.class);
     
-    static protected final Properties customProperties = new Properties();
-    static protected boolean customPropertiesLoaded = false;
-    
-    static {
-        try {
-            customProperties.load(Config.class.getResourceAsStream("custom_parameters.properties"));
-            customPropertiesLoaded = true;    
-        }
-        catch (IOException no_load) {
-            logger.debug("Failed to load custom_parameters.properties... It may either not exist or be unreadable.", no_load);
-        }
-    }
-    
     int debuglength = 500;
     
     public GTransformer() {
@@ -191,12 +178,24 @@ public class GTransformer {
             transformer.setParameter((String)params[i], value);
         }
         transformer.setParameter("DATETIME", new Date());
-
-        if (customPropertiesLoaded) {
-            for (Map.Entry<Object, Object> i: customProperties.entrySet()) {
-                final String name = (String) i.getKey();
-                transformer.setParameter(name, i.getValue());
+        
+        final Properties customProperties = new Properties();
+        try {
+            final String path = String.format("/%s/%s", (new File(xsltName)).getParent(), "custom_parameters.properties");
+            final InputStream customParameterStream = this.getClass().getResourceAsStream(path); 
+            if (customParameterStream == null) {
+                logger.debug(String.format("The %s file does not exist.", path));
             }
+            else {
+                customProperties.load(customParameterStream);
+                for (final Map.Entry<Object, Object> i: customProperties.entrySet()) {
+                    final String name = (String) i.getKey();
+                    transformer.setParameter(name, i.getValue());
+                }
+            }
+        }
+        catch (IOException no_load) {
+            logger.debug("Failed to load custom_parameters.properties... It may either not exist or be unreadable.", no_load);
         }
         
         StreamResult destStream = new StreamResult(new StringWriter());
