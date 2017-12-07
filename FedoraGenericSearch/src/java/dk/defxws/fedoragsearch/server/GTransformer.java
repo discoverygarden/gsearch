@@ -14,6 +14,8 @@ import java.io.StringWriter;
 import java.net.URL;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -52,6 +54,20 @@ public class GTransformer {
     
     private static final Logger logger =
         Logger.getLogger(GTransformer.class);
+    
+    static protected final Properties customProperties = new Properties();
+    static protected boolean customPropertiesLoaded = false;
+    
+    static {
+        try {
+            customProperties.load(Config.class.getResourceAsStream("custom_parameters.properties"));
+            customPropertiesLoaded = true;    
+        }
+        catch (IOException no_load) {
+            logger.debug("Failed to load custom_parameters.properties... It may either not exist or be unreadable.", no_load);
+        }
+    }
+    
     int debuglength = 500;
     
     public GTransformer() {
@@ -175,6 +191,14 @@ public class GTransformer {
             transformer.setParameter((String)params[i], value);
         }
         transformer.setParameter("DATETIME", new Date());
+
+        if (customPropertiesLoaded) {
+            for (Map.Entry<Object, Object> i: customProperties.entrySet()) {
+                final String name = (String) i.getKey();
+                transformer.setParameter(name, i.getValue());
+            }
+        }
+        
         StreamResult destStream = new StreamResult(new StringWriter());
         try {
             transformer.transform(sourceStream, destStream);
