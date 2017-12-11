@@ -24,6 +24,7 @@ import javax.servlet.ServletException;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 
+import dk.defxws.fedoragsearch.server.errors.ConfigException;
 import dk.defxws.fedoragsearch.server.errors.GenericSearchException;
 
 /**
@@ -110,12 +111,13 @@ public class RESTImpl extends HttpServlet {
               logger.debug("logger appender name="+appender.getName());
     	  }
       }
+      StringBuffer resultXml = new StringBuffer("<resultPage/>");
+      try {
         config = Config.getCurrentConfig();
         if (configName!=null && !"configure".equals(operation)) {
         	// mainly for test purposes
         	config = Config.getConfig(configName);
         }
-        StringBuffer resultXml = new StringBuffer("<resultPage/>");
         repositoryName = request.getParameter(PARAM_REPOSITORYNAME);
         if (repositoryName==null) repositoryName="";
         indexName = request.getParameter(PARAM_INDEXNAME);
@@ -197,9 +199,8 @@ public class RESTImpl extends HttpServlet {
 					resultXml, params,
 					getServletContext().getRealPath("/WEB-INF/classes"));
 		}
-//        if (logger.isDebugEnabled())
-//            logger.debug("after "+restXslt+" result=\n"+resultXml);
-        
+        if (logger.isInfoEnabled())
+            logger.info("request="+request.getQueryString()+" timeusedms="+timeusedms);
         if (restXslt.indexOf(CONTENTTYPEHTML)>=0)
             response.setContentType("text/html; charset=UTF-8");
         else
@@ -209,8 +210,9 @@ public class RESTImpl extends HttpServlet {
                         response.getOutputStream(), "UTF-8"));
         out.print(resultXml);
         out.close();
-        if (logger.isInfoEnabled())
-            logger.info("request="+request.getQueryString()+" timeusedms="+timeusedms);
+      } catch (ConfigException config_ex) {
+          response.sendError(500, config_ex.getMessage());
+      }
     }
     
     private String gfindObjects(HttpServletRequest request, HttpServletResponse response)

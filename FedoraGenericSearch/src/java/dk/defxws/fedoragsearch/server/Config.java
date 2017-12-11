@@ -713,6 +713,7 @@ public class Config {
 			transformer = tfactory.newTransformer(xslt);
 		} catch (TransformerConfigurationException e) {
             errors.append("\n*** Stylesheet "+configPath+" error:\n"+e.toString());
+            return;
 		}
         String testSource = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
         "<emptyTestDocumentRoot/>";
