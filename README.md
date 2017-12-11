@@ -25,10 +25,10 @@ ant release
 
 * License and Copyright: FedoraGenericSearch is subject to the same open source
 license as the Fedora Commons Repository System at www.fedora-commons.org
-** It is believed that the intent above was to keep this in line with the [fcrepo3
+  * It is believed that the intent above was to keep this in line with the [fcrepo3
 license](https://github.com/fcrepo3/fcrepo/blob/master/LICENSE).
 * Copyright 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 by The
 Technical University of Denmark. All rights reserved.
-** This would apply where appropriate.
+  * This would apply where appropriate.
 * There is additional [licensing in the
 repo](https://github.com/discoverygarden/gsearch/blob/master/FedoraGenericSearch/license/license.html).
