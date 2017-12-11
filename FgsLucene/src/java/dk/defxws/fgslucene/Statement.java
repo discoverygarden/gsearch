@@ -38,7 +38,6 @@ import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.Fragmenter;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
-import org.apache.lucene.util.Version;
 
 import dk.defxws.fedoragsearch.server.GenericOperationsImpl;
 import dk.defxws.fedoragsearch.server.errors.GenericSearchException;
@@ -94,7 +93,7 @@ public class Statement {
     	}
     	Query query = null;
     	if (defaultFields.length == 1) {
-    		QueryParser queryParser = new QueryParser(Version.LUCENE_42, defaultFields[0], analyzer);
+    		QueryParser queryParser = new QueryParser(defaultFields[0], analyzer);
     		queryParser.setAllowLeadingWildcard(allowLeadingWildcard);
     		queryParser.setLowercaseExpandedTerms(lowercaseExpandedTerms);
             if (logger.isDebugEnabled())
@@ -108,7 +107,7 @@ public class Statement {
     		}
     	}
     	else {
-    		MultiFieldQueryParser queryParser = new MultiFieldQueryParser(Version.LUCENE_42, defaultFields, analyzer);
+    		MultiFieldQueryParser queryParser = new MultiFieldQueryParser(defaultFields, analyzer);
     		queryParser.setAllowLeadingWildcard(allowLeadingWildcard);
     		queryParser.setLowercaseExpandedTerms(lowercaseExpandedTerms);
             if (logger.isDebugEnabled())
@@ -180,7 +179,7 @@ public class Statement {
     				TokenStream tokenStream = null;
 					try {
 						tokenStream = analyzer.tokenStream( f.name(), new StringReader(f.stringValue()));
-					} catch (IOException e) {
+					} catch (Exception e) {
     					errorExit(e.toString());
 					}
     				try {
@@ -236,7 +235,7 @@ public class Statement {
 //  sortFields      ::= [sortField[';'sortField]*]
 //  sortField       ::= sortFieldName[','(sortType | locale | comparatorClass)[','reverse]]]]
 //  sortFieldName   ::= #the name of an index field, which is UN_TOKENIZED and contains a single term per document
-//  sortType		::= 'BYTE' | 'DOC' | 'DOUBLE' | 'FLOAT' | 'INT' | 'LONG' | 'SCORE' | 'SHORT' | 'STRING' | 'STRING_VAL'
+//  sortType		::= 'DOC' | 'DOUBLE' | 'FLOAT' | 'INT' | 'LONG' | 'SCORE' | 'STRING' | 'STRING_VAL'
 //  locale          ::= language['-'country['-'variant]]
 //  comparatorClass ::= package-path'.'className['('param['-'param]*')']
 //  reverse         ::= 'false' (default) | 'true' | 'reverse'
@@ -339,8 +338,7 @@ public class Statement {
     			} else {
     				String sortTypeOrLocaleString = sortTypeOrLocaleOrCompString;
     				Locale locale = null;
-    				if ("BYTE".equals(sortTypeOrLocaleString)) sortType = SortField.Type.BYTE;
-    				else if ("DOC".equals(sortTypeOrLocaleString)) sortType = SortField.Type.DOC;
+    				if ("DOC".equals(sortTypeOrLocaleString)) sortType = SortField.Type.DOC;
     				else if ("DOUBLE".equals(sortTypeOrLocaleString)) sortType = SortField.Type.DOUBLE;
     				else if ("FLOAT".equals(sortTypeOrLocaleString)) sortType = SortField.Type.FLOAT;
     				else if ("INT".equals(sortTypeOrLocaleString)) sortType = SortField.Type.INT;
@@ -349,7 +347,6 @@ public class Statement {
     					sortType = SortField.Type.SCORE;
 //    					searcher.setDefaultFieldSortScoring(true, true); not in 4.0.0
     				}
-    				else if ("SHORT".equals(sortTypeOrLocaleString)) sortType = SortField.Type.SHORT;
     				else if ("STRING".equals(sortTypeOrLocaleString)) sortType = SortField.Type.STRING;
     				else if ("STRING_VAL".equals(sortTypeOrLocaleString)) sortType = SortField.Type.STRING_VAL;
     				else if (((sortTypeOrLocaleString.substring(0, 1)).compareTo("A") >= 0) && ((sortTypeOrLocaleString.substring(0, 1)).compareTo("Z") <= 0)) {

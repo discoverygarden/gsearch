@@ -563,7 +563,7 @@ public class Config {
     				StringBuffer untokenizedFields = new StringBuffer(getProperty(props, "fgsindex.untokenizedFields"));
     				DirectoryReader ir = null;
     				try {
-    					Directory dir = new SimpleFSDirectory(indexDirFile);
+    					Directory dir = new SimpleFSDirectory(indexDirFile.toPath());
 //    					ir = IndexReader.open(dir);
 //    					Directory dir = new SimpleFSDirectory(new File(config.getIndexDir(indexName)));
     					ir = DirectoryReader.open(dir);
@@ -573,7 +573,7 @@ public class Config {
     						Document doc = ir.document(i);
     						for (ListIterator li = doc.getFields().listIterator(); li.hasNext(); ) {
     							Field f = (Field)li.next();
-    							if (!f.fieldType().tokenized() && f.fieldType().indexed() && untokenizedFields.indexOf(f.name())<0) {
+    							if (!f.fieldType().tokenized() && f.fieldType().indexOptions() != org.apache.lucene.index.IndexOptions.NONE && untokenizedFields.indexOf(f.name())<0) {
     								untokenizedFields.append(" "+f.name());
     							}
     						}

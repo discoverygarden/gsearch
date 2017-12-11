@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
+import org.apache.lucene.index.IndexOptions;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -101,7 +102,7 @@ public class IndexDocumentHandler extends DefaultHandler {
         parameters = "";
         asOfDateTime = "";
         fType = new FieldType();
-        fType.setIndexed(true);
+        fType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
         fType.setStored(true);
         fType.setStoreTermVectors(false);
         fType.setTokenized(true);
@@ -141,8 +142,8 @@ public class IndexDocumentHandler extends DefaultHandler {
                 if (aName=="index") 
                     if ("ANALYZED".equals(val) || "TOKENIZED".equals(val)) fType.setTokenized(true);
                     else if ("NOT_ANALYZED".equals(val) || "UN_TOKENIZED".equals(val)) fType.setTokenized(false);
-                    else if ("YES".equals(val)) fType.setIndexed(true);
-                    else if ("NO".equals(val)) fType.setIndexed(false);
+                    else if ("YES".equals(val)) fType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
+                    else if ("NO".equals(val)) fType.setIndexOptions(IndexOptions.NONE);
                     else if ("NO_NORMS".equals(val)) fType.setOmitNorms(true);
                     else if ("NOT_ANALYZED_NO_NORMS".equals(val)) {
                     	fType.setTokenized(false);
